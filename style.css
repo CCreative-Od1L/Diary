@@ -1,0 +1,117 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    min-width: 1600px;
+    min-height: 700px;
+}
+
+body {
+    font-size: 10px;
+    display: flex;
+    flex-flow: column nowrap;
+    padding: 0px 20vw;
+}
+
+header {
+    align-self: flex-start;
+    margin-inline-start: 3rem;
+    font-size: 2rem;
+}
+
+.web-foot {
+    font-size: 1.2rem;
+}
+
+.web-foot section {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+}
+
+.main {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    margin-block: 2rem;
+}
+
+.selector {
+    display: flex;
+    flex-flow: column nowrap;
+    padding-inline-end: 2.4rem;
+    
+    height: 70vh;
+    font-size: 1.4rem;
+}
+
+.selector ul {
+    list-style-type: none;
+    overflow: auto;
+}
+
+.selector ul li {
+    border-radius: 0.5rem;
+    margin-block-end: 0.35rem;
+    cursor: pointer;
+}
+
+.selector ul li div {
+    border-radius: 0.5rem;
+    padding-inline-start: 0.7rem;
+    padding-block: 0.35rem;
+}
+
+.selector ul li div::selection {
+    background-color: aliceblue;
+}
+
+.selector ul li div:hover {   
+    background-color: rgb(213, 235, 255);
+}
+
+.selector ul li:nth-child(odd) {
+    background-color: aliceblue;
+}
+
+.diary-area {
+    position: relative;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+    height: 100%;
+    width: 100%;
+}
+
+.welcome-page{
+    position: relative;
+    font-size: 2rem;
+    height: 100%;
+    width: 100%;
+}
+
+.welcome-page p {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.diary-area textarea {
+    margin-block-end: 2rem;
+    font-size: 1.4rem;
+    height: 100%;
+    width: 100%;
+}
+
+.control-panel button{
+    font-size: 1.4rem;
+    padding-block: 0.2rem;
+    padding-inline: 0.7rem;
+    margin-inline-end: 1rem;
+}
+
+.not-display {
+    display: none;
+}
