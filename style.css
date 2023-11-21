@@ -15,6 +15,18 @@ body {
     padding: 0px 20vw;
 }
 
+textarea {
+    border: 0.1rem solid black;
+    border-radius: 1rem;
+    padding: 1rem;
+    resize: none;
+}
+
+textarea:focus {
+    outline: none;
+    border: 0.1rem solid blue;
+}
+
 header {
     align-self: flex-start;
     margin-inline-start: 3rem;
@@ -71,8 +83,8 @@ header {
     background-color: rgb(213, 235, 255);
 }
 
-.selector ul li:nth-child(odd) {
-    background-color: aliceblue;
+.selector ul li div:active {
+    background-color: rgb(181, 209, 235);
 }
 
 .diary-area {
@@ -84,7 +96,7 @@ header {
     width: 100%;
 }
 
-.welcome-page{
+.welcome-page {
     position: relative;
     font-size: 2rem;
     height: 100%;
@@ -114,4 +126,8 @@ header {
 
 .not-display {
     display: none;
+}
+
+.active {
+    background-color: rgb(202, 225, 248);
 }
