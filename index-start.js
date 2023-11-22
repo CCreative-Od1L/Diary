@@ -19,7 +19,7 @@ class DbRequestFunction {
 };
 
 window.addEventListener('load', () => {
-    let request = window.indexedDB.open(db_name, 1);
+    let request = window.indexedDB.open(db_name, 2);
     let DbFunctionInstance = new DbRequestFunction(request);
 
     DbFunctionInstance.onRequestError(() => {
@@ -37,8 +37,9 @@ window.addEventListener('load', () => {
             keyPath: 'id',
             autoIncrement: true,
         });
-        objectStore.createIndex('time', 'time', { unique: false });
+        objectStore.createIndex('createTime', 'time', { unique: false });
         objectStore.createIndex('content', 'content', { unique: false });
+        objectStore.createIndex('modifiedTime', 'mTime', { unique: false });
         console.log('Database setup complete');
     })
 })
@@ -46,6 +47,7 @@ window.addEventListener('load', () => {
 function addDiary(content_val) {
     let newItem = {
         time: Date.now(),
+        modifiedTime: Date.now(),
         content: content_val,
     };
 
@@ -99,11 +101,48 @@ function SetReadStatus() {
 function SetEditStatus() {
     edit_area.setAttribute('placeholder', '记录日常小事');
     edit_area.removeAttribute('readonly');
-    edit_area.value = '';
     
     newButton.setAttribute('disabled', 'true');
     saveButton.removeAttribute('disabled');
     deleteButton.setAttribute('disabled', 'true');
+}
+
+function Switch2WelcomePage() {
+    AddClass(edit_area, 'not-display');
+    RemoveClass(welcome_page, 'not-display');
+}
+
+function Switch2EditPage() {
+    AddClass(welcome_page, 'not-display');
+    RemoveClass(edit_area, 'not-display');
+}
+
+function TryToSetActive() {
+    if (selector.firstChild) {
+        AddClass(selector.firstChild.childNodes[0], 'active');
+        let objectStore = db.transaction(db_name).objectStore(table_name);
+        let request = objectStore.get((Number)(selector.firstChild.childNodes[0].dataset.id))
+        
+        request.addEventListener('success', () => {
+            edit_area.value = request.result.content;
+        })
+
+        Switch2EditPage();
+        SetReadStatus();
+    } else {
+        Switch2WelcomePage();
+        InitButtons();
+    }
+}
+
+function CleanActive() {
+    selector.querySelectorAll('.active').forEach(element => {
+        RemoveClass(element, 'active');
+    });
+}
+
+function HasActive() {
+    return selector.querySelector('.active') ? true : false;
 }
 
 selector.addEventListener('click', (e) => {
@@ -117,8 +156,7 @@ selector.addEventListener('click', (e) => {
     if (item.tagName === 'DIV') {
         AddClass(item, 'active');
     } else {
-        RemoveClass(welcome_page, 'not-display');
-        AddClass(edit_area, 'not-display');
+        Switch2WelcomePage();
         return;
     }
 
@@ -129,22 +167,35 @@ selector.addEventListener('click', (e) => {
         edit_area.value = request.result.content;
     })
 
-    AddClass(welcome_page, 'not-display');
-    RemoveClass(edit_area, 'not-display');
+    Switch2EditPage();
     SetReadStatus();
 })
 
 newButton.addEventListener('click', function () {
-    AddClass(welcome_page, 'not-display');
-    RemoveClass(edit_area, 'not-display');
+    Switch2EditPage();
     SetEditStatus();
+    edit_area.value = '';
+    CleanActive();
 }.bind(newButton))
 
-saveButton.addEventListener('click', function () {
+saveButton.addEventListener('click',function () {
     if (edit_area.value) {
-        addDiary(edit_area.value);
+        if (HasActive()) {
+            const objectStore = db.transaction(db_name, 'readwrite').objectStore(table_name);
+            objectStore.get((Number)(selector.querySelector('.active').dataset.id)).addEventListener('success', (e) => {
+                const data = e.target.result;
+                data.content = edit_area.value;
+                data.modifiedTime = Date.now();
+                objectStore.put(data).addEventListener('success', () => {
+                    console.log('update success.');
+                })
+            })
+        } else {
+            addDiary(edit_area.value);
+        }
     }
     SetReadStatus();
+
     displayDiaryList();
 }.bind(saveButton))
 
@@ -166,39 +217,8 @@ deleteButton.addEventListener('click', function () {
     objectStore.delete((Number)(item.dataset.id));
 
     transaction.addEventListener('complete', () => {
-        let firstLi = item.parentNode.parentNode.firstChild;
-        if (firstLi !== item.parentNode) {
-            let div = firstLi.childNodes[0];
-            AddClass(div, 'active');
-
-            let objectStore = db.transaction(db_name).objectStore(table_name);
-            let request = objectStore.get((Number)(div.dataset.id))
-            
-            request.addEventListener('success', () => {
-                edit_area.value = request.result.content;
-            })
-            SetReadStatus();
-        } else {
-            RemoveClass(welcome_page, 'not-display');
-            AddClass(edit_area, 'not-display');
-            InitButtons();
-        }
         item.parentNode.parentNode.removeChild(item.parentNode);
-
-        // TODO 待封装（设置当前激活项）
-        if (selector.firstChild) {
-            AddClass(selector.firstChild.childNodes[0], 'active');
-            let objectStore = db.transaction(db_name).objectStore(table_name);
-            let request = objectStore.get((Number)(selector.firstChild.childNodes[0].dataset.id))
-            
-            request.addEventListener('success', () => {
-                edit_area.value = request.result.content;
-            })
-
-            AddClass(welcome_page, 'not-display');
-            RemoveClass(edit_area, 'not-display');
-            SetReadStatus();
-        }
+        TryToSetActive();
     })
 
 }.bind(deleteButton))
@@ -224,18 +244,6 @@ function displayDiaryList() {
             cursor.continue();
         }
 
-        if (selector.firstChild) {
-            AddClass(selector.firstChild.childNodes[0], 'active');
-            let objectStore = db.transaction(db_name).objectStore(table_name);
-            let request = objectStore.get((Number)(selector.firstChild.childNodes[0].dataset.id))
-            
-            request.addEventListener('success', () => {
-                edit_area.value = request.result.content;
-            })
-
-            AddClass(welcome_page, 'not-display');
-            RemoveClass(edit_area, 'not-display');
-            SetReadStatus();  
-        }
+        TryToSetActive();
     })
 }
